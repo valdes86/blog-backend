@@ -25,9 +25,7 @@ class SecurityConfig(var jwtAuthConverter: JwtAuthConverter) {
             .authorizeHttpRequests { authorizeHttpRequests ->
                 authorizeHttpRequests
                     .requestMatchers(HttpMethod.GET, "/api/V1/blogpost", "/api/V1/blogpost/**",
-                            "/api/V1/authentication/**",
                             "/actuator/**").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/V1/authentication/login").permitAll()
                     .requestMatchers("/api/V1/blogpost", "/api/V1/blogpost/**").authenticated()//.hasRole("ADMIN")
                     .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll()
                     .anyRequest().authenticated()

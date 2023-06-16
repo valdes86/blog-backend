@@ -7,12 +7,14 @@ import org.bson.types.ObjectId
 import org.springframework.stereotype.Service
 
 @Service
-class BlogpostService (var blogRepository : BlogpostRepository){
+class BlogpostService (var blogRepository : BlogpostRepository) {
 
     fun getBlogpost(id: String) = blogRepository.findOneById(ObjectId(id))
-    fun getAllBlogposts():Iterable<Blogpost> = blogRepository.findAll()
-    fun addBlogpost(blogpostRequest: BlogpostRequest):Blogpost =
-        blogRepository.insert(Blogpost(title = blogpostRequest.title, text=blogpostRequest.text, published = false))
+    fun getAllBlogposts(): Iterable<Blogpost> = blogRepository.findAll()
+    fun addBlogpost(blogpostRequest: BlogpostRequest): Blogpost {
+        val blogpost = Blogpost(title = blogpostRequest.title, text=blogpostRequest.text)
+        return blogRepository.save(blogpost)
+    }
     fun updateBlogpost(id: String, blogpostRequest: BlogpostRequest):Blogpost?  {
         return if (blogRepository.existsById(id)){
             val blogpostUpdated = blogRepository
@@ -23,5 +25,12 @@ class BlogpostService (var blogRepository : BlogpostRepository){
             null
         }
     }
-    fun deleteBlogpost(id: String) = blogRepository.deleteById(id)
+    fun deleteBlogpost(id: String) : String?{
+        return if (blogRepository.existsById(id)){
+            blogRepository.deleteById(id)
+            id
+        } else {
+            null
+        }
+    }
 }

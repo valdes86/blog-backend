@@ -10,17 +10,16 @@ import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-
 class BlogpostServiceTests {
 
-    val blogpostRepository : BlogpostRepository = mockk()
-    val blogpostService : BlogpostService = BlogpostService(blogpostRepository)
+    private var blogpostRepository : BlogpostRepository = mockk()
+    private val blogpostService : BlogpostService = BlogpostService(blogpostRepository)
 
-    val blogpost = Blogpost(ObjectId.get(), "title", "text")
-    val blogpostRequest = BlogpostRequest("title", "text")
-    val text = "Updated"
-    val blogpostUpdate = blogpost.copy(title = "textUpdate")
-    val blogposts = emptyList<Blogpost>()
+    private val blogpost = Blogpost(ObjectId.get(), "title", "text")
+    private val blogpostRequest = BlogpostRequest("title", "text")
+    private val blogpostUpdate = blogpost.copy(title = "textUpdate")
+    private val blogpostUpdateRequest = blogpostRequest.copy(title= "textUpdate")
+    private val blogposts = emptyList<Blogpost>()
 
     @Test
     fun `When get blogposts then return list of Blogposts`() {
@@ -54,13 +53,13 @@ class BlogpostServiceTests {
     fun `When add blogpost then return added blogpost`() {
 
         //given
-        every { blogpostRepository.insert(blogpost) } returns blogpost
+        every { blogpostRepository.save(any()) } returns blogpost
 
         //when
         val result = blogpostService.addBlogpost(blogpostRequest)
 
         //then
-        verify(exactly = 1) { blogpostRepository.insert(blogpost)}
+        verify(exactly = 1) { blogpostRepository.save(any()) }
         assertEquals(blogpost, result)
     }
 
@@ -68,12 +67,12 @@ class BlogpostServiceTests {
     fun `When update blogpost and already exists then return blogpost`() {
 
         //given
-        every { blogpostRepository.existsById(any())} returns true
+        every { blogpostRepository.existsById(blogpost.id.toString())} returns true
         every { blogpostRepository.findOneById(blogpost.id) } returns blogpost
         every { blogpostRepository.save(blogpostUpdate) } returns blogpostUpdate
 
         //when
-        val result = blogpostService.updateBlogpost(blogpost.id.toString(), blogpostRequest)
+        val result = blogpostService.updateBlogpost(blogpost.id.toString(), blogpostUpdateRequest)
 
         //then
         verify(exactly = 1) { blogpostRepository.save(blogpostUpdate)}
@@ -82,7 +81,7 @@ class BlogpostServiceTests {
     }
 
     @Test
-    fun `When update blogpost and not exists then return blogpost`() {
+    fun `When update blogpost and not exists then return null`() {
 
         //given
         every { blogpostRepository.existsById(any())} returns false
@@ -99,13 +98,29 @@ class BlogpostServiceTests {
     fun `When delete blogpost then return deleted blogpost`() {
 
         //given
-        every { blogpostRepository.insert(blogpost) } returns blogpost
+        every { blogpostRepository.existsById(any())} returns true
+        every { blogpostRepository.deleteById(blogpost.id.toString()) } returns Unit
 
         //when
-        val result = blogpostService.addBlogpost(blogpostRequest)
+        val result = blogpostService.deleteBlogpost(blogpost.id.toString())
 
         //then
-        verify(exactly = 1) { blogpostRepository.insert(blogpost)}
-        assertEquals(blogpost, result)
+        verify(exactly = 1) { blogpostRepository.deleteById(blogpost.id.toString()) }
+        assertEquals(blogpost.id.toString(), result)
+    }
+
+    @Test
+    fun `When delete blogpost that not exists then return deleted blogpost`() {
+
+        //given
+        every { blogpostRepository.existsById(any())} returns false
+        every { blogpostRepository.deleteById(blogpost.id.toString()) } returns Unit
+
+        //when
+        val result = blogpostService.deleteBlogpost(blogpost.id.toString())
+
+        //then
+        verify(exactly = 0) { blogpostRepository.deleteById(blogpost.id.toString())}
+        assertNull(result)
     }
 }
